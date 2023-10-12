@@ -21,6 +21,8 @@ template <isRQuantity T> class Vector2D {
             return Vector2D<T>(m * cos(t), m * sin(t));
         }
 
+        static Vector2D unitVector(QAngle t) { return fromPolar(t, (T)1.0); }
+
         T getX() { return x; }
 
         T getY() { return y; }
@@ -68,6 +70,11 @@ template <isRQuantity T> class Vector2D {
         QAngle angleTo(Vector2D<T>& other) { return atan2(other.y - y, other.x - x); }
 
         T distance(Vector2D<T>& other) { return sqrt(square(x - other.x, 2) + square(y - other.y, 2)); }
+
+        Vector2D<T> normalize() {
+            T m = magnitude();
+            return Vector2D<T>(x / m, y / m);
+        }
 
         void rotateBy(QAngle angle) {
             T m = magnitude();
