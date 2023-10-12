@@ -22,16 +22,10 @@ constexpr QCurvature degpm = degree / meter;
 inline namespace literals {
 constexpr QCurvature operator"" _radpm(long double x) { return QCurvature(x); }
 
-constexpr QCurvature operator"" _radpm(unsigned long long int x) {
-  return QCurvature(static_cast<double>(x));
-}
+constexpr QCurvature operator"" _radpm(unsigned long long int x) { return QCurvature(static_cast<double>(x)); }
 
-constexpr QCurvature operator"" _degpm(long double x) {
-  return static_cast<double>(x) * degpm;
-}
+constexpr QCurvature operator"" _degpm(long double x) { return static_cast<double>(x) * degpm; }
 
-constexpr QCurvature operator"" _degpm(unsigned long long int x) {
-  return static_cast<double>(x) * degpm;
-}
+constexpr QCurvature operator"" _degpm(unsigned long long int x) { return static_cast<double>(x) * degpm; }
 } // namespace literals
 } // namespace units

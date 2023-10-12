@@ -20,17 +20,13 @@ constexpr QRadius mprad(1.0);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 
-static QRadius toRadius(const QLength iRadius) {
-  return QRadius(iRadius.getValue());
-}
+static QRadius toRadius(const QLength iRadius) { return QRadius(iRadius.getValue()); }
 
 #pragma GCC diagnostic pop
 
 inline namespace literals {
 constexpr QRadius operator"" _mprad(long double x) { return QRadius(x); }
 
-constexpr QRadius operator"" _mprad(unsigned long long int x) {
-  return QRadius(static_cast<double>(x));
-}
+constexpr QRadius operator"" _mprad(unsigned long long int x) { return QRadius(static_cast<double>(x)); }
 } // namespace literals
 } // namespace units
