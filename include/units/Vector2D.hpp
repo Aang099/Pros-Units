@@ -1,4 +1,5 @@
 #pragma once
+
 #include "units/QAcceleration.hpp"
 #include "units/QAngle.hpp"
 #include "units/QLength.hpp"
@@ -44,58 +45,56 @@ public:
   Vector2D<T> &operator+=(Vector2D<T> &other) {
     x += other.x;
     y += other.y;
-    return this;
+    return (*this);
   }
 
   Vector2D<T> &operator-=(Vector2D<T> &other) {
-    x += other.x;
-    y += other.y;
-    return this;
+    x -= other.x;
+    y -= other.y;
+    return (*this);
   }
 
   Vector2D<T> &operator*=(double factor) {
     x *= factor;
     y *= factor;
-    return this;
+    return (*this);
   }
 
   Vector2D<T> &operator/=(double factor) {
     x /= factor;
     y /= factor;
-    return this;
+    return (*this);
   }
 
-  T dot(Vector2D<T> other) { return ((x * other.x) + (y * other.y)); }
+  double dot(Vector2D<T> &other) {
+    return ((x * other.x) + (y * other.y)).getValue();
+  }
 
-  QAngle theta() { return constrainAngle(atan2(y, x)); }
+  QAngle theta() { return atan2(y, x); }
 
   T magnitude() { return sqrt(square(x) + square(y)); }
 
   Vector2D<T> vectorTo(Vector2D<T> &other) {
-    return Vector2D<T>(other.x - y, other.y - y);
+    return Vector2D<T>(other.x - x, other.y - y);
   }
 
-  QAngle angleTo(Vector2D<T> &other) {
-    return vectorTo(other).theta(); // todo
-  }
+  QAngle angleTo(Vector2D<T> &other) { return atan2(other.y - y, other.x - x); }
 
   T distance(Vector2D<T> &other) {
     return sqrt(square(x - other.x, 2) + square(y - other.y, 2));
   }
 
-  Vector2D<T> &rotateBy(QAngle angle) {
+  void rotateBy(QAngle angle) {
     T m = magnitude();
     QAngle t = theta() + angle;
     x = m * cos(t);
     y = m * sin(t);
-    return this;
   }
 
-  Vector2D<T> &rotateTo(QAngle angle) {
+  void rotateTo(QAngle angle) {
     T m = magnitude();
     x = m * cos(angle);
     y = m * sin(angle);
-    return this;
   }
 
   Vector2D<T> rotatedBy(QAngle angle) {
