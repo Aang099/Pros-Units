@@ -86,6 +86,18 @@ constexpr void QAngleChecker(RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<
 template <typename T>
 concept isQAngle = requires { QAngleChecker(std::declval<T>()); };
 
+// Utility macros to make everything even more readable
+#define RATIO_ADD std::ratio_add<M1, M2>, std::ratio_add<L1, L2>, std::ratio_add<T1, T2>, std::ratio_add<A1, A2>
+#define RATIO_SUBTRACT                                                                                                 \
+    std::ratio_subtract<M1, M2>, std::ratio_subtract<L1, L2>, std::ratio_subtract<T1, T2>, std::ratio_subtract<A1, A2>
+#define RATIO_INVERSE                                                                                                  \
+    std::ratio_subtract<std::ratio<0>, M>, std::ratio_subtract<std::ratio<0>, L>,                                      \
+        std::ratio_subtract<std::ratio<0>, T>, std::ratio_subtract<std::ratio<0>, A>
+#define RATIO_MULTIPLY(_R)                                                                                             \
+    std::ratio_multiply<M, _R>, std::ratio_multiply<L, _R>, std::ratio_multiply<T, _R>, std::ratio_multiply<A, _R>
+#define RATIO_DIVIDE(_R)                                                                                               \
+    std::ratio_divide<M, _R>, std::ratio_divide<L, _R>, std::ratio_divide<T, _R>, std::ratio_divide<A, _R>
+
 // Standard arithmetic operators:
 // ------------------------------
 template <isRQuantity T> constexpr T operator+(const T& lhs, const T& rhs) {
@@ -97,10 +109,8 @@ template <isRQuantity T> constexpr T operator-(const T& lhs, const T& rhs) {
 }
 
 template <typename M1, typename L1, typename T1, typename A1, typename M2, typename L2, typename T2, typename A2>
-constexpr RQuantity<std::ratio_add<M1, M2>, std::ratio_add<L1, L2>, std::ratio_add<T1, T2>, std::ratio_add<A1, A2>>
-operator*(const RQuantity<M1, L1, T1, A1>& lhs, const RQuantity<M2, L2, T2, A2>& rhs) {
-    return RQuantity<std::ratio_add<M1, M2>, std::ratio_add<L1, L2>, std::ratio_add<T1, T2>, std::ratio_add<A1, A2>>(
-        lhs.getValue() * rhs.getValue());
+constexpr RQuantity<RATIO_ADD> operator*(const RQuantity<M1, L1, T1, A1>& lhs, const RQuantity<M2, L2, T2, A2>& rhs) {
+    return RQuantity<RATIO_ADD>(lhs.getValue() * rhs.getValue());
 }
 
 template <isRQuantity T> constexpr T operator*(const double& lhs, const T& rhs) { return T(lhs * rhs.getValue()); }
@@ -108,19 +118,14 @@ template <isRQuantity T> constexpr T operator*(const double& lhs, const T& rhs) 
 template <isRQuantity T> constexpr T operator*(const T& lhs, const double& rhs) { return T(lhs.getValue() * rhs); }
 
 template <typename M1, typename L1, typename T1, typename A1, typename M2, typename L2, typename T2, typename A2>
-constexpr RQuantity<std::ratio_subtract<M1, M2>, std::ratio_subtract<L1, L2>, std::ratio_subtract<T1, T2>,
-                    std::ratio_subtract<A1, A2>>
-operator/(const RQuantity<M1, L1, T1, A1>& lhs, const RQuantity<M2, L2, T2, A2>& rhs) {
-    return RQuantity<std::ratio_subtract<M1, M2>, std::ratio_subtract<L1, L2>, std::ratio_subtract<T1, T2>,
-                     std::ratio_subtract<A1, A2>>(lhs.getValue() / rhs.getValue());
+constexpr RQuantity<RATIO_SUBTRACT> operator/(const RQuantity<M1, L1, T1, A1>& lhs,
+                                              const RQuantity<M2, L2, T2, A2>& rhs) {
+    return RQuantity<RATIO_SUBTRACT>(lhs.getValue() / rhs.getValue());
 }
 
 template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<std::ratio_subtract<std::ratio<0>, M>, std::ratio_subtract<std::ratio<0>, L>,
-                    std::ratio_subtract<std::ratio<0>, T>, std::ratio_subtract<std::ratio<0>, A>>
-operator/(const double& x, const T& rhs) {
-    return RQuantity<std::ratio_subtract<std::ratio<0>, M>, std::ratio_subtract<std::ratio<0>, L>,
-                     std::ratio_subtract<std::ratio<0>, T>, std::ratio_subtract<std::ratio<0>, A>>(x / rhs.getValue());
+constexpr RQuantity<RATIO_INVERSE> operator/(const double& x, const T& rhs) {
+    return RQuantity<RATIO_INVERSE>(x / rhs.getValue());
 }
 
 template <isRQuantity T> constexpr T operator/(const T& rhs, const double& x) { return T(rhs.getValue() / x); }
@@ -157,65 +162,33 @@ template <isRQuantity T> constexpr bool operator>(const T& lhs, const T& rhs) {
 template <isRQuantity T> constexpr T abs(const T& rhs) { return T(std::abs(rhs.getValue())); }
 
 template <typename R, typename M, typename L, typename T, typename A>
-constexpr RQuantity<std::ratio_multiply<M, R>, std::ratio_multiply<L, R>, std::ratio_multiply<T, R>,
-                    std::ratio_multiply<A, R>>
-pow(const T& lhs) {
-    return RQuantity<std::ratio_multiply<M, R>, std::ratio_multiply<L, R>, std::ratio_multiply<T, R>,
-                     std::ratio_multiply<A, R>>(std::pow(lhs.getValue(), double(R::num) / R::den));
+constexpr RQuantity<RATIO_MULTIPLY(R)> pow(const RQuantity<M, L, T, A>& lhs) {
+    return RQuantity<RATIO_MULTIPLY(R)>(std::pow(lhs.getValue(), double(R::num) / R::den));
 }
 
 template <int R, typename M, typename L, typename T, typename A>
-constexpr RQuantity<std::ratio_multiply<M, std::ratio<R>>, std::ratio_multiply<L, std::ratio<R>>,
-                    std::ratio_multiply<T, std::ratio<R>>, std::ratio_multiply<A, std::ratio<R>>>
-pow(const T& lhs) {
-    return RQuantity<std::ratio_multiply<M, std::ratio<R>>, std::ratio_multiply<L, std::ratio<R>>,
-                     std::ratio_multiply<T, std::ratio<R>>, std::ratio_multiply<A, std::ratio<R>>>(
-        std::pow(lhs.getValue(), R));
-}
-
-template <int R, typename M, typename L, typename T, typename A>
-constexpr RQuantity<std::ratio_divide<M, std::ratio<R>>, std::ratio_divide<L, std::ratio<R>>,
-                    std::ratio_divide<T, std::ratio<R>>, std::ratio_divide<A, std::ratio<R>>>
-root(const T& lhs) {
-    return RQuantity<std::ratio_divide<M, std::ratio<R>>, std::ratio_divide<L, std::ratio<R>>,
-                     std::ratio_divide<T, std::ratio<R>>, std::ratio_divide<A, std::ratio<R>>>(
-        std::pow(lhs.getValue(), 1.0 / R));
+constexpr RQuantity<RATIO_DIVIDE(std::ratio<R>)> root(const T& lhs) {
+    return RQuantity<RATIO_DIVIDE(std::ratio<R>)>(std::pow(lhs.getValue(), 1.0 / R));
 }
 
 template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<std::ratio_divide<M, std::ratio<2>>, std::ratio_divide<L, std::ratio<2>>,
-                    std::ratio_divide<T, std::ratio<2>>, std::ratio_divide<A, std::ratio<2>>>
-sqrt(const T& rhs) {
-    return RQuantity<std::ratio_divide<M, std::ratio<2>>, std::ratio_divide<L, std::ratio<2>>,
-                     std::ratio_divide<T, std::ratio<2>>, std::ratio_divide<A, std::ratio<2>>>(
-        std::sqrt(rhs.getValue()));
+constexpr RQuantity<RATIO_DIVIDE(std::ratio<2>)> sqrt(const T& rhs) {
+    return RQuantity<RATIO_DIVIDE(std::ratio<2>)>(std::sqrt(rhs.getValue()));
 }
 
 template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<std::ratio_divide<M, std::ratio<3>>, std::ratio_divide<L, std::ratio<3>>,
-                    std::ratio_divide<T, std::ratio<3>>, std::ratio_divide<A, std::ratio<3>>>
-cbrt(const T& rhs) {
-    return RQuantity<std::ratio_divide<M, std::ratio<3>>, std::ratio_divide<L, std::ratio<3>>,
-                     std::ratio_divide<T, std::ratio<3>>, std::ratio_divide<A, std::ratio<3>>>(
-        std::cbrt(rhs.getValue()));
+constexpr RQuantity<RATIO_DIVIDE(std::ratio<3>)> cbrt(const T& rhs) {
+    return RQuantity<RATIO_DIVIDE(std::ratio<3>)>(std::cbrt(rhs.getValue()));
 }
 
 template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<std::ratio_multiply<M, std::ratio<2>>, std::ratio_multiply<L, std::ratio<2>>,
-                    std::ratio_multiply<T, std::ratio<2>>, std::ratio_multiply<A, std::ratio<2>>>
-square(const T& rhs) {
-    return RQuantity<std::ratio_multiply<M, std::ratio<2>>, std::ratio_multiply<L, std::ratio<2>>,
-                     std::ratio_multiply<T, std::ratio<2>>, std::ratio_multiply<A, std::ratio<2>>>(
-        std::pow(rhs.getValue(), 2));
+constexpr RQuantity<RATIO_MULTIPLY(std::ratio<2>)> square(const T& rhs) {
+    return RQuantity<RATIO_MULTIPLY(std::ratio<2>)>(std::pow(rhs.getValue(), 2));
 }
 
 template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<std::ratio_multiply<M, std::ratio<3>>, std::ratio_multiply<L, std::ratio<3>>,
-                    std::ratio_multiply<T, std::ratio<3>>, std::ratio_multiply<A, std::ratio<3>>>
-cube(const T& rhs) {
-    return RQuantity<std::ratio_multiply<M, std::ratio<3>>, std::ratio_multiply<L, std::ratio<3>>,
-                     std::ratio_multiply<T, std::ratio<3>>, std::ratio_multiply<A, std::ratio<3>>>(
-        std::pow(rhs.getValue(), 3));
+constexpr RQuantity<RATIO_MULTIPLY(std::ratio<3>)> cube(const T& rhs) {
+    return RQuantity<RATIO_MULTIPLY(std::ratio<3>)>(std::pow(rhs.getValue(), 3));
 }
 
 template <isRQuantity T> constexpr T hypot(const T& lhs, const T& rhs) {
