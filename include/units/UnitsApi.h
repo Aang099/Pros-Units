@@ -11,7 +11,6 @@
 #include "units/QJerk.hpp"
 #include "units/QLength.hpp"
 #include "units/QMass.hpp"
-#include "units/QPressure.hpp"
 #include "units/QRadius.hpp"
 #include "units/QSpeed.hpp"
 #include "units/QTime.hpp"
