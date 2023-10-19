@@ -75,16 +75,25 @@ template <typename MassDim, typename LengthDim, typename TimeDim, typename Angle
 QUANTITY_TYPE(0, 0, 0, 0, Number)
 constexpr Number number(1.0);
 
+// isRquantity concept makes everything much more readable
+template <typename... args> void RQuantityChecker(RQuantity<args...>) {}
+
+template <typename T>
+concept isRQuantity = requires { RQuantityChecker(std::declval<T>()); };
+
+constexpr void QAngleChecker(RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>) {}
+
+template <typename T>
+concept isQAngle = requires { QAngleChecker(std::declval<T>()); };
+
 // Standard arithmetic operators:
 // ------------------------------
-template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<M, L, T, A> operator+(const RQuantity<M, L, T, A>& lhs, const RQuantity<M, L, T, A>& rhs) {
-    return RQuantity<M, L, T, A>(lhs.getValue() + rhs.getValue());
+template <isRQuantity T> constexpr T operator+(const T& lhs, const T& rhs) {
+    return T(lhs.getValue() + rhs.getValue());
 }
 
-template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<M, L, T, A> operator-(const RQuantity<M, L, T, A>& lhs, const RQuantity<M, L, T, A>& rhs) {
-    return RQuantity<M, L, T, A>(lhs.getValue() - rhs.getValue());
+template <isRQuantity T> constexpr T operator-(const T& lhs, const T& rhs) {
+    return T(lhs.getValue() - rhs.getValue());
 }
 
 template <typename M1, typename L1, typename T1, typename A1, typename M2, typename L2, typename T2, typename A2>
@@ -94,15 +103,9 @@ operator*(const RQuantity<M1, L1, T1, A1>& lhs, const RQuantity<M2, L2, T2, A2>&
         lhs.getValue() * rhs.getValue());
 }
 
-template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<M, L, T, A> operator*(const double& lhs, const RQuantity<M, L, T, A>& rhs) {
-    return RQuantity<M, L, T, A>(lhs * rhs.getValue());
-}
+template <isRQuantity T> constexpr T operator*(const double& lhs, const T& rhs) { return T(lhs * rhs.getValue()); }
 
-template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<M, L, T, A> operator*(const RQuantity<M, L, T, A>& lhs, const double& rhs) {
-    return RQuantity<M, L, T, A>(lhs.getValue() * rhs);
-}
+template <isRQuantity T> constexpr T operator*(const T& lhs, const double& rhs) { return T(lhs.getValue() * rhs); }
 
 template <typename M1, typename L1, typename T1, typename A1, typename M2, typename L2, typename T2, typename A2>
 constexpr RQuantity<std::ratio_subtract<M1, M2>, std::ratio_subtract<L1, L2>, std::ratio_subtract<T1, T2>,
@@ -115,60 +118,48 @@ operator/(const RQuantity<M1, L1, T1, A1>& lhs, const RQuantity<M2, L2, T2, A2>&
 template <typename M, typename L, typename T, typename A>
 constexpr RQuantity<std::ratio_subtract<std::ratio<0>, M>, std::ratio_subtract<std::ratio<0>, L>,
                     std::ratio_subtract<std::ratio<0>, T>, std::ratio_subtract<std::ratio<0>, A>>
-operator/(const double& x, const RQuantity<M, L, T, A>& rhs) {
+operator/(const double& x, const T& rhs) {
     return RQuantity<std::ratio_subtract<std::ratio<0>, M>, std::ratio_subtract<std::ratio<0>, L>,
                      std::ratio_subtract<std::ratio<0>, T>, std::ratio_subtract<std::ratio<0>, A>>(x / rhs.getValue());
 }
 
-template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<M, L, T, A> operator/(const RQuantity<M, L, T, A>& rhs, const double& x) {
-    return RQuantity<M, L, T, A>(rhs.getValue() / x);
-}
+template <isRQuantity T> constexpr T operator/(const T& rhs, const double& x) { return T(rhs.getValue() / x); }
 
 // Comparison operators for quantities:
 // ------------------------------------
-template <typename M, typename L, typename T, typename A>
-constexpr bool operator==(const RQuantity<M, L, T, A>& lhs, const RQuantity<M, L, T, A>& rhs) {
+template <isRQuantity T> constexpr bool operator==(const T& lhs, const T& rhs) {
     return (lhs.getValue() == rhs.getValue());
 }
 
-template <typename M, typename L, typename T, typename A>
-constexpr bool operator!=(const RQuantity<M, L, T, A>& lhs, const RQuantity<M, L, T, A>& rhs) {
+template <isRQuantity T> constexpr bool operator!=(const T& lhs, const T& rhs) {
     return (lhs.getValue() != rhs.getValue());
 }
 
-template <typename M, typename L, typename T, typename A>
-constexpr bool operator<=(const RQuantity<M, L, T, A>& lhs, const RQuantity<M, L, T, A>& rhs) {
+template <isRQuantity T> constexpr bool operator<=(const T& lhs, const T& rhs) {
     return (lhs.getValue() <= rhs.getValue());
 }
 
-template <typename M, typename L, typename T, typename A>
-constexpr bool operator>=(const RQuantity<M, L, T, A>& lhs, const RQuantity<M, L, T, A>& rhs) {
+template <isRQuantity T> constexpr bool operator>=(const T& lhs, const T& rhs) {
     return (lhs.getValue() >= rhs.getValue());
 }
 
-template <typename M, typename L, typename T, typename A>
-constexpr bool operator<(const RQuantity<M, L, T, A>& lhs, const RQuantity<M, L, T, A>& rhs) {
+template <isRQuantity T> constexpr bool operator<(const T& lhs, const T& rhs) {
     return (lhs.getValue() < rhs.getValue());
 }
 
-template <typename M, typename L, typename T, typename A>
-constexpr bool operator>(const RQuantity<M, L, T, A>& lhs, const RQuantity<M, L, T, A>& rhs) {
+template <isRQuantity T> constexpr bool operator>(const T& lhs, const T& rhs) {
     return (lhs.getValue() > rhs.getValue());
 }
 
 // Common math functions:
 // ------------------------------
 
-template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<M, L, T, A> abs(const RQuantity<M, L, T, A>& rhs) {
-    return RQuantity<M, L, T, A>(std::abs(rhs.getValue()));
-}
+template <isRQuantity T> constexpr T abs(const T& rhs) { return T(std::abs(rhs.getValue())); }
 
 template <typename R, typename M, typename L, typename T, typename A>
 constexpr RQuantity<std::ratio_multiply<M, R>, std::ratio_multiply<L, R>, std::ratio_multiply<T, R>,
                     std::ratio_multiply<A, R>>
-pow(const RQuantity<M, L, T, A>& lhs) {
+pow(const T& lhs) {
     return RQuantity<std::ratio_multiply<M, R>, std::ratio_multiply<L, R>, std::ratio_multiply<T, R>,
                      std::ratio_multiply<A, R>>(std::pow(lhs.getValue(), double(R::num) / R::den));
 }
@@ -176,7 +167,7 @@ pow(const RQuantity<M, L, T, A>& lhs) {
 template <int R, typename M, typename L, typename T, typename A>
 constexpr RQuantity<std::ratio_multiply<M, std::ratio<R>>, std::ratio_multiply<L, std::ratio<R>>,
                     std::ratio_multiply<T, std::ratio<R>>, std::ratio_multiply<A, std::ratio<R>>>
-pow(const RQuantity<M, L, T, A>& lhs) {
+pow(const T& lhs) {
     return RQuantity<std::ratio_multiply<M, std::ratio<R>>, std::ratio_multiply<L, std::ratio<R>>,
                      std::ratio_multiply<T, std::ratio<R>>, std::ratio_multiply<A, std::ratio<R>>>(
         std::pow(lhs.getValue(), R));
@@ -185,7 +176,7 @@ pow(const RQuantity<M, L, T, A>& lhs) {
 template <int R, typename M, typename L, typename T, typename A>
 constexpr RQuantity<std::ratio_divide<M, std::ratio<R>>, std::ratio_divide<L, std::ratio<R>>,
                     std::ratio_divide<T, std::ratio<R>>, std::ratio_divide<A, std::ratio<R>>>
-root(const RQuantity<M, L, T, A>& lhs) {
+root(const T& lhs) {
     return RQuantity<std::ratio_divide<M, std::ratio<R>>, std::ratio_divide<L, std::ratio<R>>,
                      std::ratio_divide<T, std::ratio<R>>, std::ratio_divide<A, std::ratio<R>>>(
         std::pow(lhs.getValue(), 1.0 / R));
@@ -194,7 +185,7 @@ root(const RQuantity<M, L, T, A>& lhs) {
 template <typename M, typename L, typename T, typename A>
 constexpr RQuantity<std::ratio_divide<M, std::ratio<2>>, std::ratio_divide<L, std::ratio<2>>,
                     std::ratio_divide<T, std::ratio<2>>, std::ratio_divide<A, std::ratio<2>>>
-sqrt(const RQuantity<M, L, T, A>& rhs) {
+sqrt(const T& rhs) {
     return RQuantity<std::ratio_divide<M, std::ratio<2>>, std::ratio_divide<L, std::ratio<2>>,
                      std::ratio_divide<T, std::ratio<2>>, std::ratio_divide<A, std::ratio<2>>>(
         std::sqrt(rhs.getValue()));
@@ -203,7 +194,7 @@ sqrt(const RQuantity<M, L, T, A>& rhs) {
 template <typename M, typename L, typename T, typename A>
 constexpr RQuantity<std::ratio_divide<M, std::ratio<3>>, std::ratio_divide<L, std::ratio<3>>,
                     std::ratio_divide<T, std::ratio<3>>, std::ratio_divide<A, std::ratio<3>>>
-cbrt(const RQuantity<M, L, T, A>& rhs) {
+cbrt(const T& rhs) {
     return RQuantity<std::ratio_divide<M, std::ratio<3>>, std::ratio_divide<L, std::ratio<3>>,
                      std::ratio_divide<T, std::ratio<3>>, std::ratio_divide<A, std::ratio<3>>>(
         std::cbrt(rhs.getValue()));
@@ -212,7 +203,7 @@ cbrt(const RQuantity<M, L, T, A>& rhs) {
 template <typename M, typename L, typename T, typename A>
 constexpr RQuantity<std::ratio_multiply<M, std::ratio<2>>, std::ratio_multiply<L, std::ratio<2>>,
                     std::ratio_multiply<T, std::ratio<2>>, std::ratio_multiply<A, std::ratio<2>>>
-square(const RQuantity<M, L, T, A>& rhs) {
+square(const T& rhs) {
     return RQuantity<std::ratio_multiply<M, std::ratio<2>>, std::ratio_multiply<L, std::ratio<2>>,
                      std::ratio_multiply<T, std::ratio<2>>, std::ratio_multiply<A, std::ratio<2>>>(
         std::pow(rhs.getValue(), 2));
@@ -221,104 +212,69 @@ square(const RQuantity<M, L, T, A>& rhs) {
 template <typename M, typename L, typename T, typename A>
 constexpr RQuantity<std::ratio_multiply<M, std::ratio<3>>, std::ratio_multiply<L, std::ratio<3>>,
                     std::ratio_multiply<T, std::ratio<3>>, std::ratio_multiply<A, std::ratio<3>>>
-cube(const RQuantity<M, L, T, A>& rhs) {
+cube(const T& rhs) {
     return RQuantity<std::ratio_multiply<M, std::ratio<3>>, std::ratio_multiply<L, std::ratio<3>>,
                      std::ratio_multiply<T, std::ratio<3>>, std::ratio_multiply<A, std::ratio<3>>>(
         std::pow(rhs.getValue(), 3));
 }
 
-template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<M, L, T, A> hypot(const RQuantity<M, L, T, A>& lhs, const RQuantity<M, L, T, A>& rhs) {
-    return RQuantity<M, L, T, A>(std::hypot(lhs.getValue(), rhs.getValue()));
+template <isRQuantity T> constexpr T hypot(const T& lhs, const T& rhs) {
+    return T(std::hypot(lhs.getValue(), rhs.getValue()));
 }
 
-template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<M, L, T, A> mod(const RQuantity<M, L, T, A>& lhs, const RQuantity<M, L, T, A>& rhs) {
-    return RQuantity<M, L, T, A>(std::fmod(lhs.getValue(), rhs.getValue()));
+template <isRQuantity T> constexpr T mod(const T& lhs, const T& rhs) {
+    return T(std::fmod(lhs.getValue(), rhs.getValue()));
 }
 
-template <typename M1, typename L1, typename T1, typename A1, typename M2, typename L2, typename T2, typename A2>
-constexpr RQuantity<M1, L1, T1, A1> copysign(const RQuantity<M1, L1, T1, A1>& lhs,
-                                             const RQuantity<M2, L2, T2, A2>& rhs) {
-    return RQuantity<M1, L1, T1, A1>(std::copysign(lhs.getValue(), rhs.getValue()));
+template <isRQuantity T1, isRQuantity T2> constexpr T1 copysign(const T1& lhs, const T2& rhs) {
+    return T1(std::copysign(lhs.getValue(), rhs.getValue()));
 }
 
-template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<M, L, T, A> ceil(const RQuantity<M, L, T, A>& lhs, const RQuantity<M, L, T, A>& rhs) {
-    return RQuantity<M, L, T, A>(std::ceil(lhs.getValue() / rhs.getValue()) * rhs.getValue());
+template <isRQuantity T> constexpr T ceil(const T& lhs, const T& rhs) {
+    return T(std::ceil(lhs.getValue() / rhs.getValue()) * rhs.getValue());
 }
 
-template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<M, L, T, A> floor(const RQuantity<M, L, T, A>& lhs, const RQuantity<M, L, T, A>& rhs) {
-    return RQuantity<M, L, T, A>(std::floor(lhs.getValue() / rhs.getValue()) * rhs.getValue());
+template <isRQuantity T> constexpr T floor(const T& lhs, const T& rhs) {
+    return T(std::floor(lhs.getValue() / rhs.getValue()) * rhs.getValue());
 }
 
-template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<M, L, T, A> trunc(const RQuantity<M, L, T, A>& lhs, const RQuantity<M, L, T, A>& rhs) {
-    return RQuantity<M, L, T, A>(std::trunc(lhs.getValue() / rhs.getValue()) * rhs.getValue());
+template <isRQuantity T> constexpr T trunc(const T& lhs, const T& rhs) {
+    return T(std::trunc(lhs.getValue() / rhs.getValue()) * rhs.getValue());
 }
 
-template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<M, L, T, A> round(const RQuantity<M, L, T, A>& lhs, const RQuantity<M, L, T, A>& rhs) {
-    return RQuantity<M, L, T, A>(std::round(lhs.getValue() / rhs.getValue()) * rhs.getValue());
+template <isRQuantity T> constexpr T round(const T& lhs, const T& rhs) {
+    return T(std::round(lhs.getValue() / rhs.getValue()) * rhs.getValue());
 }
 
 // Common trig functions:
 // ------------------------------
 
-constexpr Number sin(const RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>& rhs) {
-    return Number(std::sin(rhs.getValue()));
-}
+template <isQAngle T> constexpr Number sin(const T& rhs) { return Number(std::sin(rhs.getValue())); }
 
-constexpr Number cos(const RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>& rhs) {
-    return Number(std::cos(rhs.getValue()));
-}
+template <isQAngle T> constexpr Number cos(const T& rhs) { return Number(std::cos(rhs.getValue())); }
 
-constexpr Number tan(const RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>& rhs) {
-    return Number(std::tan(rhs.getValue()));
-}
+template <isQAngle T> constexpr Number tan(const T& rhs) { return Number(std::tan(rhs.getValue())); }
 
-constexpr RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>> asin(const Number& rhs) {
-    return RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>(std::asin(rhs.getValue()));
-}
+template <isQAngle T> T asin(const Number& rhs) { return T(std::asin(rhs.getValue())); }
 
-constexpr RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>> acos(const Number& rhs) {
-    return RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>(std::acos(rhs.getValue()));
-}
+template <isQAngle T> T acos(const Number& rhs) { return T(std::acos(rhs.getValue())); }
 
-constexpr RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>> atan(const Number& rhs) {
-    return RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>(std::atan(rhs.getValue()));
-}
+template <isQAngle T> T atan(const Number& rhs) { return T(std::atan(rhs.getValue())); }
 
-constexpr Number sinh(const RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>& rhs) {
-    return Number(std::sinh(rhs.getValue()));
-}
+template <isQAngle T> constexpr Number sinh(const T& rhs) { return Number(std::sinh(rhs.getValue())); }
 
-constexpr Number cosh(const RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>& rhs) {
-    return Number(std::cosh(rhs.getValue()));
-}
+template <isQAngle T> constexpr Number cosh(const T& rhs) { return Number(std::cosh(rhs.getValue())); }
 
-constexpr Number tanh(const RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>& rhs) {
-    return Number(std::tanh(rhs.getValue()));
-}
+template <isQAngle T> constexpr Number tanh(const T& rhs) { return Number(std::tanh(rhs.getValue())); }
 
-constexpr RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>> asinh(const Number& rhs) {
-    return RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>(std::asinh(rhs.getValue()));
-}
+template <isQAngle T> T asinh(const Number& rhs) { return T(std::asinh(rhs.getValue())); }
 
-constexpr RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>> acosh(const Number& rhs) {
-    return RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>(std::acosh(rhs.getValue()));
-}
+template <isQAngle T> T acosh(const Number& rhs) { return T(std::acosh(rhs.getValue())); }
 
-constexpr RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>> atanh(const Number& rhs) {
-    return RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>(std::atanh(rhs.getValue()));
-}
+template <isQAngle T> T atanh(const Number& rhs) { return T(std::atanh(rhs.getValue())); }
 
-template <typename M, typename L, typename T, typename A>
-constexpr RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>
-atan2(const RQuantity<M, L, T, A>& lhs, const RQuantity<M, L, T, A>& rhs) {
-    return RQuantity<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>>(
-        std::atan2(lhs.getValue(), rhs.getValue()));
+template <isRQuantity T, isQAngle A> T atan2(const T& lhs, const T& rhs) {
+    return A(std::atan2(lhs.getValue(), rhs.getValue()));
 }
 
 inline namespace literals {
@@ -331,10 +287,6 @@ constexpr long double operator"" _pi(unsigned long long int x) {
 }
 } // namespace literals
 
-template <typename... args> void RQuantityChecker(RQuantity<args...>) {}
-
-template <typename T>
-concept isRQuantity = requires { RQuantityChecker(std::declval<T>()); };
 } // namespace units
 
 // Conversion macro, which utilizes the string literals
